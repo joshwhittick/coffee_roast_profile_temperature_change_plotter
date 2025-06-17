@@ -1,9 +1,10 @@
-import os, io, shutil, tempfile, cv2, pytesseract, pandas as pd
+import os, io, shutil, tempfile, cv2, pandas as pd
 from datetime import datetime
 from PIL import Image, ImageEnhance, ImageFilter, UnidentifiedImageError
 import matplotlib.pyplot as plt
 import streamlit as st
 import atexit
+import easyocr
 
 # ---------- low-level helpers ----------
 def extract_frames(video_bytes: bytes, interval_s: int = 2, rotate: bool = True) -> tuple:
@@ -20,10 +21,13 @@ def extract_frames(video_bytes: bytes, interval_s: int = 2, rotate: bool = True)
     for t in range(0, duration + 1, interval_s):
         cap.set(cv2.CAP_PROP_POS_FRAMES, int(t * fps))
         ok, frame = cap.read()
-        if not ok: continue
+        if not ok:
+            continue
         if rotate:
             frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
-        cv2.imwrite(os.path.join(tmpdir, f"{t}.jpg"), frame)
+        success = cv2.imwrite(os.path.join(tmpdir, f"{t}.jpg"), frame)
+        if not success:
+            print(f"⚠️ Failed to write frame at {t}s")
     cap.release()
     return tmpdir, duration
 
@@ -34,6 +38,7 @@ def preprocess(image_path: str) -> Image.Image:
     return img
 
 def run_ocr(folder: str, debug: bool = False) -> pd.DataFrame:
+    reader = easyocr.Reader(['en'], gpu=False)
     frames = [
         f for f in os.listdir(folder)
         if f.lower().endswith(".jpg") and os.path.splitext(f)[0].isdigit()
@@ -42,16 +47,21 @@ def run_ocr(folder: str, debug: bool = False) -> pd.DataFrame:
     for fname in sorted(frames, key=lambda x: int(os.path.splitext(x)[0])):
         ts = int(os.path.splitext(fname)[0])
         img_path = os.path.join(folder, fname)
-        txt = pytesseract.image_to_string(
-            preprocess(img_path),
-            config="--psm 7 digits"
-        ).strip().replace("\n", " ")
+        try:
+            result = reader.readtext(img_path, detail=0)
+        except Exception as e:
+            if debug:
+                st.error(f"[{ts}s] OCR error: {e}")
+            continue
 
         if debug:
-            st.text(f"[{ts}s] Raw OCR: '{txt}'")
+            st.text(f"[{ts}s] Raw OCR: {result}")
 
-        if txt.isdigit():
-            rows.append({"Timestamp (s)": ts, "Temperature (°C)": int(txt)})
+        for text in result:
+            digits = ''.join(filter(str.isdigit, text))
+            if digits:
+                rows.append({"Timestamp (s)": ts, "Temperature (°C)": int(digits)})
+                break
     return pd.DataFrame(rows).sort_values("Timestamp (s)")
 
 def line_plot(df: pd.DataFrame):
@@ -93,10 +103,10 @@ if video_file:
         st.success(f"Snapshots saved from 0s to {duration}s")
 
         cols = st.columns(5)
-        for i, imgname in enumerate(sorted(os.listdir(snapshot_dir))[:10]):
-            img_path = os.path.join(snapshot_dir, imgname)
+        img_files = [f for f in sorted(os.listdir(snapshot_dir)) if f.lower().endswith(".jpg")]
+        for i, imgname in enumerate(img_files[:10]):
             try:
-                cols[i % 5].image(img_path, use_container_width=True)
+                cols[i % 5].image(os.path.join(snapshot_dir, imgname), use_container_width=True)
             except UnidentifiedImageError:
                 st.warning(f"⚠️ Skipped invalid image file: {imgname}")
 
@@ -110,7 +120,6 @@ if video_file:
             st.dataframe(df, hide_index=True, use_container_width=True)
             line_plot(df)
 
-            # --- download buttons ---
             excel_bytes = io.BytesIO()
             df.to_excel(excel_bytes, index=False)
             xl_name = f"ocr_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
