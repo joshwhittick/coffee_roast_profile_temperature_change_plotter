@@ -1,10 +1,9 @@
-# app.py
 import os, io, shutil, tempfile, cv2, pytesseract, pandas as pd
 from datetime import datetime
 from PIL import Image, ImageEnhance, ImageFilter
 import matplotlib.pyplot as plt
 import streamlit as st
-import atexit, shutil
+import atexit
 
 # ---------- low-level helpers ----------
 def extract_frames(video_bytes: bytes, interval_s: int = 2, rotate: bool = True) -> tuple:
