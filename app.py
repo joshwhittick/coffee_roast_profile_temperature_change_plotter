@@ -1,6 +1,6 @@
 import os, io, shutil, tempfile, cv2, pytesseract, pandas as pd
 from datetime import datetime
-from PIL import Image, ImageEnhance, ImageFilter
+from PIL import Image, ImageEnhance, ImageFilter, UnidentifiedImageError
 import matplotlib.pyplot as plt
 import streamlit as st
 import atexit
@@ -94,7 +94,11 @@ if video_file:
 
         cols = st.columns(5)
         for i, imgname in enumerate(sorted(os.listdir(snapshot_dir))[:10]):
-            cols[i % 5].image(os.path.join(snapshot_dir, imgname), use_container_width=True)
+            img_path = os.path.join(snapshot_dir, imgname)
+            try:
+                cols[i % 5].image(img_path, use_container_width=True)
+            except UnidentifiedImageError:
+                st.warning(f"⚠️ Skipped invalid image file: {imgname}")
 
         with st.spinner("Running OCR…"):
             df = run_ocr(snapshot_dir, debug_ocr)
