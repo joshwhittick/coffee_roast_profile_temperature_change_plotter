@@ -83,15 +83,15 @@ st.set_page_config("Video Thermometer OCR", layout="wide")
 st.title("Video Thermometer OCR")
 st.markdown(
     "Upload a short video of your **thermometer display**, and this app will:\n"
-    "1. grab snapshots every *N* seconds,\n"
-    "2. run OCR on each frame, and\n"
-    "3. plot and export the temperature data."
+    "1. Grab snapshots every *N* seconds."
+    "2. Run image recognition on each frame."
+    "3. Plot and export the temperature data."
 )
 
 video_file = st.file_uploader("📼 Select a video file", type=["mp4", "mov", "avi", "mkv"])
+interval = st.number_input("Snapshot interval (seconds)", 1, 30, 2, 1)
 
 if video_file:
-    interval = st.number_input("Snapshot interval (seconds)", 1, 30, 2, 1)
     rotate = st.checkbox("Rotate frames 90° clockwise", value=True)
     debug_ocr = st.checkbox("Enable OCR debug mode")
 
