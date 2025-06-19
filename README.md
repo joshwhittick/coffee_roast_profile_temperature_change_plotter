@@ -1,6 +1,6 @@
 # ☕ Coffee Roast Profile Temperature Change Plotter
 
-##[Web App]([https://github.com/joshwhittick](https://coffee-roast-profile-plotting.streamlit.app/)
+##[Web App](https://coffee-roast-profile-plotting.streamlit.app/)
 
 ### From roast room curiosity to data visualization - a tool for tracking and analyzing small-batch coffee roasting temperatures.
 
