@@ -24,7 +24,7 @@ This tool follows a simple 5-step process:
 4. **Table**: Extracted values and timestamps are compiled into a structured CSV or Excel table.
 5. **Graph**: A temperature vs. time line plot is generated to visualize the roast profile.
 
-> ✅ The project is currently tested using a video of a radiator display (which changes color with temperature). Real coffee roasting data is expected next week — fingers crossed!
+> ✅ The project is currently tested using a video of a radiator display (which changes color with temperature leading to some errors 😥). Real coffee roasting data is expected next week - 🤞!
 
 ## 📂 Folder Structure
 
@@ -40,7 +40,7 @@ This tool follows a simple 5-step process:
 │   ├── 0.jpg
 │   ├── ...
 │   └── 38.jpg
-├── streamlit_app.py          # Streamlit app for web deployment (https://coffee-roast-profile-plotting.streamlit.app/) - uses Python based OCR since cant have Tesseract in Streamlit
+├── streamlit_app.py          # Streamlit app for web deployment - uses Python based OCR since can't have Tesseract on Streamlit
 ├── temperature_plot.png      # Sample output plot
 ├── vid_to_imgs.py            # Converts video to image snapshots
 └── vid2.mov                  # Demo input video (radiator display)
