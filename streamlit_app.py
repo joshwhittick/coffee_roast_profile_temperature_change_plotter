@@ -83,8 +83,8 @@ st.set_page_config("Video Thermometer OCR", layout="wide")
 st.title("Video Thermometer OCR")
 st.markdown(
     "Upload a short video of your **thermometer display**, and this app will:\n"
-    "1. Grab snapshots every *N* seconds."
-    "2. Run image recognition on each frame."
+    "1. Grab snapshots every *N* seconds.\n"
+    "2. Run image recognition on each frame.\n"
     "3. Plot and export the temperature data."
 )
 
